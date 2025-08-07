@@ -28,4 +28,4 @@
 Feel free to tweak the selectors in `content.js` for other sites or improve the UI in `popup.html` and `dashboard.html`.
 
 ## License
-MC-2025
+MIT @ M_Cancel
