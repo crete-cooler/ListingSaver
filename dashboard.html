@@ -1,15 +1,89 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8">
     <style>
-      body { font-family: sans-serif; padding: 16px; }
-      .card { border: 1px solid #ccc; padding: 12px; margin: 12px 0; }
-      select { margin-left: 4px; }
+      :root {
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+        --ring: #60a5fa;
+        --new: #e5e7eb; /* gray */
+        --viewed: #ede9fe; /* violet */
+        --contacted: #e0f2fe; /* sky */
+        --applied: #fef3c7; /* amber */
+        --approved: #dcfce7; /* green */
+        --denied: #ffe4e6; /* rose */
+      }
+      * { box-sizing: border-box; }
+      body { font-family: system-ui, -apple-system, Arial, sans-serif; padding: 14px; background: var(--bg); color: var(--text); }
+      h1 { margin: 4px 0 10px; font-size: 18px; }
+      .toolbar { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 6px 0; display: flex; gap: 6px; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+      .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); font-size: 12px; }
+      .toolbar button { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; box-shadow: var(--shadow); font-size: 12px; }
+      .toolbar button:hover { border-color: #cbd5e1; }
+      .board { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+      .column { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; min-height: 300px; box-shadow: var(--shadow); overflow: hidden; }
+      .column.drag-over { outline: none; }
+      .column-header { padding: 8px 10px; border-bottom: 1px solid var(--border); font-weight: 600; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+      .column.status-new .column-header { background: var(--new); }
+      .column.status-viewed .column-header { background: var(--viewed); }
+      .column.status-contacted .column-header { background: var(--contacted); }
+      .column.status-applied .column-header { background: var(--applied); }
+      .column.status-approved .column-header { background: var(--approved); }
+      .column.status-denied .column-header { background: var(--denied); }
+      .column-count { background: #fff; padding: 1px 6px; border: 1px solid var(--border); border-radius: 999px; font-size: 11px; }
+      .column-body { padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 240px; flex: 1; }
+      .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px; box-shadow: var(--shadow); transition: transform 120ms ease, box-shadow 120ms ease; }
+      .card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(15,23,42,0.06); }
+      .card.dragging { opacity: 0.6; }
+      .card.selected { outline: 2px solid var(--ring); outline-offset: -2px; }
+      .card.placeholder { visibility: hidden; border: none; background: transparent; box-shadow: none; }
+      .card h3 { margin: 0 0 5px 0; font-size: 12px; line-height: 1.35; }
+      .title-row { display: flex; align-items: center; gap: 8px; }
+      .title-row h3 { margin: 0; }
+      .card-grid { display: grid; grid-template-columns: 24px 1fr; column-gap: 8px; row-gap: 6px; align-items: start; }
+      .check-cell { padding-top: 2px; }
+      .content-col { grid-column: 2 / 3; }
+      .card-grid .title { font-size: 12px; line-height: 1.35; }
+      .subaddress { font-size: 11px; }
+      .title-row .select-toggle { flex: 0 0 auto; }
+      .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+      .meta { font-size: 11px; color: var(--muted); }
+      .badge { display: inline-flex; align-items: center; gap: 6px; padding: 1px 6px; border: 1px solid var(--border); background: #fff; border-radius: 999px; font-size: 11px; color: #0f172a; }
+      .chip { display: inline-flex; align-items: center; padding: 1px 6px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 999px; font-size: 11px; color: #0f172a; }
+      .chips { display: flex; gap: 5px; flex-wrap: wrap; }
+      .actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 6px; }
+      .btn { padding: 5px 7px; font-size: 11px; border: 1px solid var(--border); background: var(--surface); border-radius: 8px; cursor: pointer; }
+      .btn:hover { border-color: #cbd5e1; }
+      textarea { width: 100%; box-sizing: border-box; margin-top: 6px; font-size: 11px; padding: 5px 7px; border: 1px solid var(--border); border-radius: 8px; }
+      .muted { color: var(--muted); font-size: 12px; }
+      @media (max-width: 1200px) { .board { grid-template-columns: repeat(3, 1fr); } }
+      @media (max-width: 700px) { .board { grid-template-columns: 1fr; } }
     </style>
   </head>
   <body>
     <h1>Your Saved Listings</h1>
-    <div id="list"></div>
+    <div class="toolbar">
+      <label>Filter status
+        <select id="filter">
+          <option value="">All</option>
+          <option>new</option>
+          <option>viewed</option>
+          <option>contacted</option>
+          <option>applied</option>
+          <option>approved</option>
+          <option>denied</option>
+        </select>
+      </label>
+      <input id="search" placeholder="Search address or notes" />
+      <button id="bulkDeleteBtn">Delete Selected</button>
+      <button id="clearBtn">Clear All</button>
+    </div>
+    <div id="board" class="board"></div>
     <script src="dashboard.js"></script>
   </body>
 </html>
