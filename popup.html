@@ -1,17 +1,25 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8">
     <style>
-      body { font-family: sans-serif; width: 300px; padding: 8px; }
+      body { font-family: system-ui, -apple-system, Arial, sans-serif; width: 320px; padding: 12px; background: #f8fafc; }
       h2 { margin-top: 0; }
       #fields p { margin: 4px 0; }
-      #saveBtn { margin-top: 8px; width: 100%; padding: 8px; }
+      #saveBtn { margin-top: 8px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; }
+      .row { display: flex; gap: 8px; }
+      .row > * { flex: 1; }
+      input, textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+      label { display: block; font-size: 12px; color: #475569; margin: 6px 0 4px; }
+      small { color: #64748b; }
+      a { color: #0ea5e9; text-decoration: none; }
     </style>
   </head>
   <body>
     <h2>Save Listing</h2>
     <div id="fields">Loading…</div>
     <button id="saveBtn">Save to Dashboard</button>
+    <p><a id="openDashboard" href="#">Open Dashboard</a></p>
     <script src="popup.js"></script>
   </body>
 </html>
